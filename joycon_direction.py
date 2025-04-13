@@ -4,12 +4,12 @@ import struct
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-from pyjoycon import GyroTrackingJoyCon, get_R_id
+from pyjoycon import GyroTrackingJoyCon, get_R_id, get_L_id
 
 
 class JoyCon:
     def __init__(self):
-        joycon_id = get_R_id()
+        joycon_id = get_L_id()
         self.joycon: GyroTrackingJoyCon = GyroTrackingJoyCon(*joycon_id)
 
     @property
@@ -26,16 +26,14 @@ class JoyCon:
 
 
 if __name__ == "__main__":
-
     # mmapの初期化
     file_name = "/tmp/joycon_direction.dat"
-    file_size = 12  # float x 3 = 12 bytes
+    file_size = 4 * 8  # float x 3 = 12 bytes
 
     # ファイルがなければ作成
     if not os.path.exists(file_name):
         with open(file_name, "wb") as f:
             f.write(b"\x00" * file_size)
-
 
     jc = JoyCon()
     jc.joycon.calibrate()
@@ -65,7 +63,6 @@ if __name__ == "__main__":
 
     ax.legend()
 
-
     # アニメーションの更新関数
     def update(frame):
         # 新しいセンサー値を取得
@@ -88,7 +85,27 @@ if __name__ == "__main__":
 
         with open(file_name, "r+b") as f:
             mm = mmap.mmap(f.fileno(), file_size)
-            data = struct.pack("fff", jc.direction.x, jc.direction.y, jc.direction.z)
+            print(
+                jc.direction.x,
+                jc.direction.y,
+                jc.direction.z,
+                jc.pointer.x,
+                jc.pointer.y,
+                jc.rotation.x,
+                jc.rotation.y,
+                jc.rotation.z,
+            )
+            data = struct.pack(
+                "ffffffff",
+                jc.direction.x,
+                jc.direction.y,
+                jc.direction.z,
+                jc.pointer.x,
+                jc.pointer.y,
+                jc.rotation.x,
+                jc.rotation.y,
+                jc.rotation.z,
+            )
             mm.seek(0)
             mm.write(data)
 
