@@ -1,17 +1,25 @@
 # メモ：　なんかのキーを押したらキャリブレーションする
 import mmap
+import time
 import os
 import struct
 
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-from pyjoycon import GyroTrackingJoyCon, get_L_id
+from pyjoycon import GyroTrackingJoyCon, get_L_id, ButtonEventJoyCon
+from glm import quat
 
 
+class GyroAndButtonEventJoyCon(GyroTrackingJoyCon, ButtonEventJoyCon):
+    pass
 class JoyCon:
     def __init__(self):
         joycon_id = get_L_id()
-        self.joycon: GyroTrackingJoyCon = GyroTrackingJoyCon(*joycon_id)
+        self.joycon: GyroTrackingJoyCon = GyroAndButtonEventJoyCon(*joycon_id)
+
+    def reset(self):
+        # 初期値に戻すことでリセット
+        self.direction_quarternion = quat()
 
     @property
     def pointer(self):
@@ -28,6 +36,10 @@ class JoyCon:
     @property
     def direction_quarternion(self):
         return self.joycon.direction_Q
+    
+    @direction_quarternion.setter
+    def direction_quarternion(self, value):
+        self.joycon.direction_Q = value
 
 
 
@@ -78,7 +90,11 @@ if __name__ == "__main__":
         new_value_2 = jc.direction_quarternion.y
         new_value_3 = jc.direction_quarternion.z
         new_value_4 = jc.direction_quarternion.w
-  
+        for event_type, status in jc.joycon.events():
+            # キャプチャボタンが押されたら回転をリセット
+            print(event_type, status)
+            if event_type == "capture" and status == 1:
+                jc.reset()
 
         # データを更新（FIFOで古いデータを削除）
         y_data_1.append(new_value_1)
@@ -114,6 +130,6 @@ if __name__ == "__main__":
         return line1, line2, line3
 
     # アニメーションの設定
-    ani = animation.FuncAnimation(fig, update, interval=100, blit=True)
+    ani = animation.FuncAnimation(fig, update, interval=100, blit=False)
 
     plt.show()
