@@ -65,8 +65,8 @@ y_data_4 = [0] * window_size  # センサー3のY軸データ
 
 # グラフのセットアップ
 fig, ax = plt.subplots()
-button_ax = plt.axes([0.8, 0.9, 0.15, 0.075])
-reset_button = Button(button_ax, "Reset JoyCon Axis")
+button_ax = plt.axes([0.7, 0.9, 0.25, 0.1])  # ボタンのサイズを調整
+reset_button = Button(button_ax, "Recalibrate JoyCon")
 
 
 def on_reset(event):
