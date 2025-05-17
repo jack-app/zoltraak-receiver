@@ -7,13 +7,17 @@ import struct
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
-from pyjoycon import GyroTrackingJoyCon, get_L_id
+from pyjoycon import GyroTrackingJoyCon, get_L_id, get_R_id
 from glm import quat
+from typing import Literal
 
 
 class JoyCon:
-    def __init__(self):
-        joycon_id = get_L_id()
+    def __init__(self, joycon_LR: str):
+        if joycon_LR not in ["L", "R"]:
+            raise ValueError("joycon_LR must be L or R")
+
+        joycon_id = get_L_id() if joycon_LR == "L" else get_R_id()
         self.joycon: GyroTrackingJoyCon = GyroTrackingJoyCon(*joycon_id)
 
     def reset(self):
@@ -50,7 +54,12 @@ if not os.path.exists(file_name):
     with open(file_name, "wb") as f:
         f.write(b"\x00" * file_size)
 
-jc = JoyCon()
+joycon_LR = input("L or R: ").upper()
+if joycon_LR not in ["L", "R"]:
+    raise ValueError("joycon_LR must be L or R")
+
+
+jc = JoyCon(joycon_LR)
 
 # 表示領域の確保
 print("\n" * 3, end="")
