@@ -10,6 +10,9 @@ from matplotlib.widgets import Button
 from pyjoycon import GyroTrackingJoyCon, get_L_id, get_R_id
 from glm import quat
 from typing import Literal
+import sys
+import platform
+import winsound
 
 
 class JoyCon:
@@ -101,11 +104,22 @@ ax.legend()
 
 # アニメーションの更新関数
 def update(frame):
-    # 新しいセンサー値を取得
-    new_value_1 = jc.direction_quarternion.x
-    new_value_2 = jc.direction_quarternion.y
-    new_value_3 = jc.direction_quarternion.z
-    new_value_4 = jc.direction_quarternion.w
+    try:
+        # 新しいセンサー値を取得
+        new_value_1 = jc.direction_quarternion.x
+        new_value_2 = jc.direction_quarternion.y
+        new_value_3 = jc.direction_quarternion.z
+        new_value_4 = jc.direction_quarternion.w
+    except Exception as e:
+        # エラー時に音を鳴らす
+        if platform.system() == "Darwin":
+            os.system("afplay /System/Library/Sounds/Glass.aiff")
+        elif platform.system() == "Windows":
+            winsound.MessageBeep()
+        else:
+            sys.stdout.write("\a")
+            sys.stdout.flush()
+        raise e
 
     # データを更新（FIFOで古いデータを削除）
     y_data_1.append(new_value_1)
